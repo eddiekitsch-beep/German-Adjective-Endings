@@ -1,0 +1,534 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>German Adjective Ending Generator</title>
+<style>
+  :root{
+    --bg1:#070b1d; --bg2:#151033; --bg3:#24105a; --card:#121936d9; --card2:#1c2550d9;
+    --text:#f7f8ff; --muted:#b9c3ea; --accent:#a78bfa; --accent2:#38d9ff;
+    --good:#72f1b8; --bad:#ff6f91; --warn:#ffd166; --border:#ffffff24;
+    --glow1:rgba(167,139,250,.35); --glow2:rgba(56,217,255,.28); --shadow:rgba(0,0,0,.45);
+  }
+  *{box-sizing:border-box}
+  body{
+    margin:0; min-height:100vh; color:var(--text);
+    font-family:Inter,ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,Arial;
+    overflow-x:hidden;
+    background:
+      radial-gradient(circle at 18% 12%, rgba(167,139,250,.35) 0 9%, transparent 28%),
+      radial-gradient(circle at 84% 18%, rgba(56,217,255,.28) 0 8%, transparent 27%),
+      radial-gradient(circle at 52% 88%, rgba(124,58,237,.32) 0 13%, transparent 34%),
+      linear-gradient(135deg,var(--bg1),var(--bg2) 52%,var(--bg3));
+  }
+  body:before,body:after{
+    content:""; position:fixed; inset:0; pointer-events:none; z-index:-1;
+    background-image:
+      radial-gradient(#fff 1px, transparent 1px),
+      radial-gradient(#fff 1px, transparent 1px);
+    background-size:70px 70px, 110px 110px;
+    background-position:0 0, 30px 50px;
+    opacity:.30;
+    animation: drift 24s linear infinite;
+  }
+  body:after{opacity:.14; animation-duration:45s; filter:blur(.5px)}
+  @keyframes drift{to{transform:translateY(80px)}}
+  .wrap{max-width:1120px; margin:0 auto; padding:34px 18px 60px}
+  header{display:flex; align-items:flex-end; justify-content:space-between; gap:20px; margin-bottom:20px}
+  h1{font-size:clamp(2rem,5vw,4rem); margin:0; letter-spacing:-.06em; line-height:.95}
+  .sub{color:var(--muted); margin-top:10px; max-width:760px}
+  .panel{
+    background:var(--card);
+    border:1px solid var(--border);
+    box-shadow:0 18px 80px var(--shadow);
+    backdrop-filter:blur(10px);
+    border-radius:24px;
+  }
+  .grid{display:grid; grid-template-columns:340px 1fr; gap:18px}
+  .controls{padding:18px}
+  label{display:block; font-size:.82rem; color:var(--muted); margin:14px 0 7px}
+  select,input[type="number"],input[type="text"]{
+    width:100%; border:1px solid var(--border); border-radius:14px;
+    padding:12px 13px; color:var(--text); background:#0e1430; outline:none;
+  }
+  select option{background:#0e1430}
+  .chips{display:flex; flex-wrap:wrap; gap:8px}
+  .chip{
+    border:1px solid var(--border);
+    background:#111838;
+    color:var(--text); padding:9px 11px; border-radius:999px; cursor:pointer;
+    user-select:none; transition:.18s transform,.18s background;
+    font-size:.88rem;
+  }
+  .chip.active{background:linear-gradient(135deg,var(--accent),var(--accent2)); color:#080c20; font-weight:800; border-color:transparent}
+  .chip:hover,.btn:hover{transform:translateY(-1px)}
+  .quiz{padding:24px}
+  .topbar{display:flex; justify-content:space-between; gap:12px; flex-wrap:wrap; color:var(--muted); font-size:.95rem}
+  .badge{padding:8px 11px; border-radius:999px; background:#111838; border:1px solid var(--border)}
+  .question{
+    margin:22px 0 10px; padding:24px; border-radius:24px;
+    background:linear-gradient(135deg,#1f2857dd,#101735dd); border:1px solid var(--border);
+    font-size:clamp(1.35rem,3vw,2.2rem); line-height:1.45;
+    min-height:132px;
+  }
+  .translation{color:var(--muted); margin:10px 0 20px; font-size:1rem}
+  .blank{display:inline-block; min-width:70px; padding:0 5px; border-bottom:3px solid var(--accent2); color:var(--accent2); font-weight:800}
+  .answerRow{display:grid; grid-template-columns:1fr auto auto; gap:10px; align-items:center}
+  .btn{
+    border:none; border-radius:16px; padding:12px 16px; cursor:pointer; color:#080c20;
+    font-weight:900; background:linear-gradient(135deg,var(--accent),var(--accent2));
+    box-shadow:0 10px 28px rgba(103,232,249,.16);
+    transition:.16s transform,.16s filter;
+  }
+  .btn.secondary{background:#111838; color:var(--text); border:1px solid var(--border)}
+  .btn:active{transform:scale(.97)}
+  .feedback{
+    margin-top:16px; padding:16px; border-radius:18px; background:#0e1430;
+    border:1px solid var(--border); min-height:80px;
+  }
+  .feedback.good{border-color:rgba(82,255,184,.45); box-shadow:0 0 30px rgba(82,255,184,.08)}
+  .feedback.bad{border-color:rgba(255,107,157,.45); box-shadow:0 0 30px rgba(255,107,157,.08)}
+  .small{font-size:.92rem; color:var(--muted)}
+  .ending{font-weight:900; color:var(--accent2)}
+  .correct{color:var(--good); font-weight:900}
+  .wrong{color:var(--bad); font-weight:900}
+  .spark{animation:spark .42s ease}
+  @keyframes spark{0%{transform:scale(.98); filter:brightness(1)}50%{transform:scale(1.015); filter:brightness(1.25)}100%{transform:scale(1); filter:brightness(1)}}
+  .footerNote{margin-top:14px; color:var(--muted); font-size:.88rem}
+
+  .home-btn{
+    position:fixed;
+    top:18px;
+    left:18px;
+    z-index:10000;
+    text-decoration:none;
+    color:var(--text);
+    font-weight:900;
+    padding:10px 16px;
+    border-radius:999px;
+    background:rgba(255,255,255,.10);
+    border:1px solid var(--border);
+    backdrop-filter:blur(12px);
+    box-shadow:0 12px 32px var(--shadow);
+    transition:transform .16s ease, box-shadow .16s ease, border-color .16s ease;
+  }
+  .home-btn:hover{
+    transform:translateY(-2px);
+    border-color:var(--accent2);
+    box-shadow:0 0 22px var(--glow2);
+  }
+  @media(max-width:850px){.grid{grid-template-columns:1fr}.answerRow{grid-template-columns:1fr}.btn{width:100%}}
+
+    .panel,.practice,.card,.question,.prompt{animation:floatIn .5s ease both}
+    @keyframes floatIn{from{opacity:0; transform:translateY(10px)}to{opacity:1; transform:translateY(0)}}
+    .btn,.primary,.secondary,.chip,.ans,.mode-tab,.translation-btn,.home-btn{transition:transform .16s ease, box-shadow .16s ease, border-color .16s ease, filter .16s ease}
+    .btn:hover,.primary:hover,.secondary:hover,.chip:hover,.ans:hover,.mode-tab:hover,.translation-btn:hover{transform:translateY(-2px); box-shadow:0 0 24px var(--glow2); border-color:var(--accent2)}
+
+
+
+/* === Coherent minimalist theme override === */
+:root{
+  --bg1:#f7f7f5; --bg2:#efefec; --bg3:#d9d9d4;
+  --card:rgba(255,255,255,.78); --card2:rgba(245,245,242,.88);
+  --text:#101010; --muted:#5f5f5f; --accent:#111111; --accent2:#6f6f6f;
+  --good:#167a3f; --bad:#b4233a; --warn:#a56a00; --border:rgba(0,0,0,.14);
+  --glow1:rgba(0,0,0,.10); --glow2:rgba(0,0,0,.16); --shadow:rgba(0,0,0,.12);
+}
+body{
+  color:var(--text) !important;
+  background:
+    radial-gradient(circle at 16% 12%, rgba(0,0,0,.055) 0 9%, transparent 27%),
+    radial-gradient(circle at 88% 18%, rgba(0,0,0,.04) 0 8%, transparent 25%),
+    linear-gradient(135deg,var(--bg1),var(--bg2) 55%,var(--bg3)) !important;
+}
+body:before,body:after,.stars:before,.stars:after{
+  background-image:radial-gradient(rgba(0,0,0,.28) 1px, transparent 1px),radial-gradient(rgba(0,0,0,.18) 1px, transparent 1px) !important;
+  opacity:.16 !important;
+}
+body:after,.stars:after{opacity:.08 !important}
+h1,h2,.card h2,.table th{color:var(--text) !important}
+.panel,.practice,.card,.question,.prompt,.score,.mode-switch{
+  background:var(--card) !important;
+  border-color:var(--border) !important;
+  box-shadow:0 18px 60px var(--shadow) !important;
+}
+.question,.prompt,.split-row,.feedback,.mastery-box{
+  background:var(--card2) !important;
+}
+select,input,button,.chip,.badge,.secondary,.mode-tab,.translation-btn,.ans{
+  background:#ffffff !important;
+  color:var(--text) !important;
+  border-color:var(--border) !important;
+}
+select option{background:#ffffff !important;color:#111 !important}
+.btn,.primary,.chip.active,.mode-tab.active,.modebadge{
+  background:#111111 !important;
+  color:#ffffff !important;
+  border-color:#111111 !important;
+  box-shadow:0 10px 28px rgba(0,0,0,.14) !important;
+}
+.btn.secondary,.secondary{background:#ffffff !important;color:#111111 !important}
+.blank,.ending,.score strong,.split-title,.translation-btn{color:#111111 !important;border-color:#111111 !important}
+.feedback.good,.ans.correct{border-color:var(--good) !important;color:var(--good) !important;background:#f2fff7 !important}
+.feedback.bad,.ans.wrong{border-color:var(--bad) !important;color:var(--bad) !important;background:#fff4f6 !important}
+.home-btn{background:rgba(255,255,255,.82) !important;color:#111 !important;border-color:var(--border) !important;box-shadow:0 12px 30px var(--shadow) !important}
+.home-btn:hover,.btn:hover,.primary:hover,.secondary:hover,.chip:hover,.ans:hover,.mode-tab:hover,.translation-btn:hover{box-shadow:0 0 0 3px rgba(0,0,0,.08),0 16px 34px rgba(0,0,0,.12) !important;border-color:#111 !important}
+.cursor-orb{
+  border-color:rgba(0,0,0,.55) !important;
+  box-shadow:0 0 0 6px rgba(0,0,0,.06), inset 0 0 0 1px rgba(0,0,0,.18) !important;
+  mix-blend-mode:multiply !important;
+}
+.cursor-spark,.sparkle-click,.spark{
+  background:#111111 !important;
+  box-shadow:0 0 16px rgba(0,0,0,.35) !important;
+}
+.click-pop{animation:clickPop .24s ease both !important}
+@keyframes clickPop{50%{transform:scale(.965)}100%{transform:scale(1)}}
+
+
+/* Fun cursor + click effects */
+.cursor-orb{position:fixed;width:26px;height:26px;border-radius:50%;pointer-events:none;z-index:9999;transform:translate(-50%,-50%);transition:width .12s ease,height .12s ease,opacity .2s ease;border:1px solid rgba(0,0,0,.55);box-shadow:0 0 0 6px rgba(0,0,0,.06),inset 0 0 0 1px rgba(0,0,0,.16);opacity:.85;mix-blend-mode:multiply}
+.cursor-spark{position:fixed;width:7px;height:7px;border-radius:50%;pointer-events:none;z-index:9998;background:#111;box-shadow:0 0 16px rgba(0,0,0,.35);animation:cursorSpark .62s ease-out forwards}
+@keyframes cursorSpark{from{transform:translate(0,0) scale(1);opacity:1}to{transform:translate(var(--dx),var(--dy)) scale(0);opacity:0}}
+.click-pop{animation:clickPop .24s ease both}@keyframes clickPop{50%{transform:scale(.965)}100%{transform:scale(1)}}
+@media(max-width:900px){.cursor-orb{display:none}}
+
+</style>
+</head>
+<body>
+<a href="index.html" class="home-btn">🏠 Home</a>
+<div class="wrap">
+  <header>
+    <div>
+      <h1>German Adjective Ending Generator</h1>
+      <div class="sub">Fresh generated practice for adjective endings across cases, articles, genders, and tenses. Type the missing ending only, like <b>-e</b>, <b>e</b>, <b>-en</b>, or <b>en</b>.</div>
+    </div>
+  </header>
+
+  <div class="grid">
+    <aside class="panel controls">
+      <h2 style="margin:0 0 6px">Settings</h2>
+      <div class="small">Choose what gets generated. Random mode pulls from all selected options.</div>
+
+      <label>Case</label>
+      <select id="caseSel">
+        <option value="random">Random</option>
+        <option value="nom">Nominativ</option>
+        <option value="akk">Akkusativ</option>
+        <option value="dat">Dativ</option>
+        <option value="gen">Genitiv</option>
+      </select>
+
+      <label>Article type</label>
+      <select id="articleSel">
+        <option value="random">Random</option>
+        <option value="def">Der-word: der/die/das/diese/jene</option>
+        <option value="ein">Ein-word: ein/mein/dein/kein</option>
+        <option value="none">No article</option>
+      </select>
+
+      <label>Gender / Number</label>
+      <select id="genderSel">
+        <option value="random">Random</option>
+        <option value="m">Masculine</option>
+        <option value="f">Feminine</option>
+        <option value="n">Neuter</option>
+        <option value="pl">Plural</option>
+      </select>
+
+      <label>Tense / structure</label>
+      <select id="tenseSel">
+        <option value="random">Random</option>
+        <option value="present">Present</option>
+        <option value="perfect">Perfekt</option>
+        <option value="preterite">Präteritum</option>
+        <option value="future">Futur I</option>
+        <option value="modal">Modal verb</option>
+        <option value="subordinate">Subordinate clause</option>
+      </select>
+
+      <label>Sentence length</label>
+      <select id="lengthSel">
+        <option value="random">Random</option>
+        <option value="short">Short</option>
+        <option value="medium">Medium</option>
+        <option value="long">Long</option>
+      </select>
+
+      <label>Difficulty</label>
+      <select id="difficultySel">
+        <option value="single">One ending</option>
+        <option value="mixed">Sometimes multiple endings</option>
+        <option value="multi">Multiple endings often</option>
+      </select>
+
+      <label>Sound</label>
+      <div class="chips">
+        <button class="chip active" id="soundOn">On</button>
+        <button class="chip" id="soundOff">Off</button>
+      </div>
+
+      <div class="footerNote">Tip: set one case at a time until the pattern feels automatic, then switch to random.</div>
+    </aside>
+
+    <main class="panel quiz" id="quizPanel">
+      <div class="topbar">
+        <span class="badge">Score: <b id="score">0</b>/<b id="total">0</b></span>
+        <span class="badge">Streak: <b id="streak">0</b></span>
+        <span class="badge" id="meta">Generated question</span>
+      </div>
+
+      <div class="question" id="question">Press “New question” to begin.</div>
+      <div class="translation" id="translation"></div>
+
+      <div class="answerRow">
+        <input id="answer" type="text" placeholder="Type ending(s), e.g. -e or -en, -em" autocomplete="off"/>
+        <button class="btn" id="checkBtn">Check</button>
+        <button class="btn secondary" id="newBtn">New question</button>
+      </div>
+
+      <div class="feedback" id="feedback">
+        Your explanation will appear here after you answer.
+      </div>
+    </main>
+  </div>
+</div>
+
+<script>
+const endings = {
+  def:{ nom:{m:"e",f:"e",n:"e",pl:"en"}, akk:{m:"en",f:"e",n:"e",pl:"en"}, dat:{m:"en",f:"en",n:"en",pl:"en"}, gen:{m:"en",f:"en",n:"en",pl:"en"} },
+  ein:{ nom:{m:"er",f:"e",n:"es",pl:"en"}, akk:{m:"en",f:"e",n:"es",pl:"en"}, dat:{m:"en",f:"en",n:"en",pl:"en"}, gen:{m:"en",f:"en",n:"en",pl:"en"} },
+  none:{ nom:{m:"er",f:"e",n:"es",pl:"e"}, akk:{m:"en",f:"e",n:"es",pl:"e"}, dat:{m:"em",f:"er",n:"em",pl:"en"}, gen:{m:"en",f:"er",n:"en",pl:"er"} }
+};
+
+const caseNames={nom:"Nominativ",akk:"Akkusativ",dat:"Dativ",gen:"Genitiv"};
+const genderNames={m:"masculine",f:"feminine",n:"neuter",pl:"plural"};
+const articleNames={def:"der-word",ein:"ein-word",none:"no article"};
+
+const nouns = {
+ m:[
+  ["Kaffee","coffee"],["Bus","bus"],["Zug","train"],["Termin","appointment"],["Vertrag","contract"],
+  ["Nachbar","neighbor"],["Kollege","colleague"],["Kunde","customer"],["Fehler","mistake"],["Plan","plan"],
+  ["Vorschlag","suggestion"],["Bericht","report"],["Eindruck","impression"],["Unterschied","difference"],
+  ["Alltag","everyday life"],["Umzug","move"],["Aufenthalt","stay"],["Ausweis","ID card"],["Antrag","application"],
+  ["Beitrag","contribution/post"],["Besuch","visit"],["Arbeitsplatz","workplace"],["Vorteil","advantage"]
+ ],
+ f:[
+  ["Wohnung","apartment"],["Rechnung","bill"],["Nachricht","message"],["Entscheidung","decision"],
+  ["Erfahrung","experience"],["Situation","situation"],["Möglichkeit","possibility"],["Meinung","opinion"],
+  ["Regel","rule"],["Frage","question"],["Antwort","answer"],["Lösung","solution"],["Versicherung","insurance"],
+  ["Bescheinigung","certificate"],["Bewerbung","application"],["Veranstaltung","event"],["Reise","trip"],
+  ["Gewohnheit","habit"],["Begegnung","encounter"],["Diskussion","discussion"],["Sicherheit","safety/security"]
+ ],
+ n:[
+  ["Zimmer","room"],["Problem","problem"],["Gespräch","conversation"],["Angebot","offer"],["Projekt","project"],
+  ["Ergebnis","result"],["Dokument","document"],["Gerät","device"],["Ticket","ticket"],["Paket","package"],
+  ["Essen","food/meal"],["Training","training"],["Treffen","meeting"],["Studium","studies"],["Praktikum","internship"],
+  ["Gefühl","feeling"],["Thema","topic"],["Beispiel","example"],["Ziel","goal"],["Risiko","risk"],["System","system"]
+ ],
+ pl:[
+  ["Menschen","people"],["Freunde","friends"],["Termine","appointments"],["Regeln","rules"],["Nachrichten","messages"],
+  ["Erfahrungen","experiences"],["Probleme","problems"],["Möglichkeiten","possibilities"],["Dokumente","documents"],
+  ["Angebote","offers"],["Geräte","devices"],["Fragen","questions"],["Antworten","answers"],["Entscheidungen","decisions"],
+  ["Gespräche","conversations"],["Verträge","contracts"],["Projekte","projects"],["Gewohnheiten","habits"]
+ ]
+};
+
+const adjectives=[
+ ["neu","new"],["alt","old"],["wichtig","important"],["schwierig","difficult"],["einfach","simple"],
+ ["praktisch","practical"],["höflich","polite"],["ehrlich","honest"],["pünktlich","punctual"],["sicher","safe/certain"],
+ ["unsicher","uncertain/unsafe"],["teuer","expensive"],["günstig","cheap/affordable"],["modern","modern"],
+ ["gemütlich","cozy"],["stressig","stressful"],["ruhig","quiet"],["lauter","louder"],["deutlich","clear"],
+ ["kompliziert","complicated"],["nützlich","useful"],["dringend","urgent"],["persönlich","personal"],
+ ["öffentlich","public"],["privat","private"],["regelmäßig","regular"],["spontan","spontaneous"],
+ ["freundlich","friendly"],["ausführlich","detailed"],["kurz","short"],["lang","long"],["realistisch","realistic"],
+ ["vernünftig","reasonable"],["typisch","typical"],["kulturell","cultural"],["technisch","technical"],["lokal","local"]
+];
+
+const articles = {
+ def:{ m:{nom:"der",akk:"den",dat:"dem",gen:"des"}, f:{nom:"die",akk:"die",dat:"der",gen:"der"}, n:{nom:"das",akk:"das",dat:"dem",gen:"des"}, pl:{nom:"die",akk:"die",dat:"den",gen:"der"} },
+ ein:{ m:{nom:"ein",akk:"einen",dat:"einem",gen:"eines"}, f:{nom:"eine",akk:"eine",dat:"einer",gen:"einer"}, n:{nom:"ein",akk:"ein",dat:"einem",gen:"eines"}, pl:{nom:"keine",akk:"keine",dat:"keinen",gen:"keiner"} },
+ none:{ m:{nom:"",akk:"",dat:"",gen:""}, f:{nom:"",akk:"",dat:"",gen:""}, n:{nom:"",akk:"",dat:"",gen:""}, pl:{nom:"",akk:"",dat:"",gen:""} }
+};
+
+const templates = {
+ present:[
+  {case:"nom", de:"{NP} ist heute besonders auffällig.", en:"{ENNP} is especially noticeable today."},
+  {case:"akk", de:"Ich brauche {NP} für den Alltag.", en:"I need {ENNP} for everyday life."},
+  {case:"dat", de:"Ich helfe mit {NP}, wenn ich Zeit habe.", en:"I help with {ENNP} when I have time."},
+  {case:"gen", de:"Wegen {NP} bin ich etwas nervös.", en:"Because of {ENNP}, I am a bit nervous."}
+ ],
+ perfect:[
+  {case:"nom", de:"{NP} hat mich gestern überrascht.", en:"{ENNP} surprised me yesterday."},
+  {case:"akk", de:"Ich habe {NP} gestern benutzt.", en:"I used {ENNP} yesterday."},
+  {case:"dat", de:"Ich habe mit {NP} gute Erfahrungen gemacht.", en:"I have had good experiences with {ENNP}."},
+  {case:"gen", de:"Trotz {NP} habe ich weitergemacht.", en:"Despite {ENNP}, I kept going."}
+ ],
+ preterite:[
+  {case:"nom", de:"{NP} war früher nicht so wichtig.", en:"{ENNP} used to not be so important."},
+  {case:"akk", de:"Ich sah {NP} auf dem Weg zur Schule.", en:"I saw {ENNP} on the way to school."},
+  {case:"dat", de:"Ich sprach mit {NP} über meine Pläne.", en:"I spoke with {ENNP} about my plans."},
+  {case:"gen", de:"Während {NP} blieb ich ruhig.", en:"During {ENNP}, I stayed calm."}
+ ],
+ future:[
+  {case:"nom", de:"{NP} wird nächste Woche eine Rolle spielen.", en:"{ENNP} will play a role next week."},
+  {case:"akk", de:"Ich werde {NP} morgen vorbereiten.", en:"I will prepare {ENNP} tomorrow."},
+  {case:"dat", de:"Ich werde mit {NP} vorsichtiger umgehen.", en:"I will deal with {ENNP} more carefully."},
+  {case:"gen", de:"Aufgrund {NP} werde ich früher losgehen.", en:"Due to {ENNP}, I will leave earlier."}
+ ],
+ modal:[
+  {case:"nom", de:"{NP} muss nicht perfekt sein.", en:"{ENNP} does not have to be perfect."},
+  {case:"akk", de:"Ich möchte {NP} besser verstehen.", en:"I would like to understand {ENNP} better."},
+  {case:"dat", de:"Man sollte mit {NP} geduldig bleiben.", en:"One should remain patient with {ENNP}."},
+  {case:"gen", de:"Statt {NP} sollte man eine klare Lösung suchen.", en:"Instead of {ENNP}, one should look for a clear solution."}
+ ],
+ subordinate:[
+  {case:"nom", de:"Ich glaube, dass {NP} ziemlich hilfreich ist.", en:"I think that {ENNP} is quite helpful."},
+  {case:"akk", de:"Ich hoffe, dass ich {NP} bald finde.", en:"I hope that I find {ENNP} soon."},
+  {case:"dat", de:"Ich weiß, dass ich mit {NP} besser klarkomme.", en:"I know that I cope better with {ENNP}."},
+  {case:"gen", de:"Ich merke, dass ich wegen {NP} mehr nachdenken muss.", en:"I notice that because of {ENNP}, I have to think more."}
+ ]
+};
+
+function choice(a){return a[Math.floor(Math.random()*a.length)]}
+function val(id){return document.getElementById(id).value}
+let current=null, score=0,total=0,streak=0, sound=true;
+
+function pick(setting, arr){return setting==="random" ? choice(arr) : setting}
+
+function makeNP(forceCase=null){
+  const c = forceCase || pick(val("caseSel"), ["nom","akk","dat","gen"]);
+  const artType = pick(val("articleSel"), ["def","ein","none"]);
+  const g = pick(val("genderSel"), ["m","f","n","pl"]);
+  const [noun,nounEn]=choice(nouns[g]);
+  const [adj,adjEn]=choice(adjectives);
+  const art=articles[artType][g][c];
+  const ending=endings[artType][c][g];
+  const display = `${art ? art+" " : ""}${adj}<span class="blank">___</span> ${noun}`;
+  const full = `${art ? art+" " : ""}${adj}${ending} ${noun}`;
+  const enArt = g==="pl" ? "" : (artType==="def" ? "the " : artType==="ein" ? "a/one " : "");
+  return {case:c, artType,g,noun,nounEn,adj,adjEn,art,ending,display,full,en:`${enArt}${adjEn} ${nounEn}`};
+}
+
+function generate(){
+  const tense = pick(val("tenseSel"), Object.keys(templates));
+  const length = pick(val("lengthSel"), ["short","medium","long"]);
+  const diff = val("difficultySel");
+  let useMulti = diff==="multi" || (diff==="mixed" && Math.random()<0.45);
+  if(length==="short") useMulti=false;
+
+  const baseCase = val("caseSel")==="random" ? choice(["nom","akk","dat","gen"]) : val("caseSel");
+  const tOptions = templates[tense].filter(t => val("caseSel")==="random" || t.case===baseCase);
+  const temp = choice(tOptions.length?tOptions:templates[tense]);
+  const np1 = makeNP(temp.case);
+  let de = temp.de.replace("{NP}", np1.display).replace("{ENNP}", np1.en);
+  let en = temp.en.replace("{ENNP}", np1.en);
+  let answers=[np1.ending], parts=[np1];
+
+  if(useMulti){
+    const np2 = makeNP(choice(["akk","dat","gen","nom"]));
+    const connectors = {
+      short:` und ${np2.display}`,
+      medium:`, aber ich denke auch an ${np2.display}`,
+      long:`; trotzdem hängt meine Entscheidung oft von ${np2.display} ab`
+    };
+    de += connectors[length] || connectors.medium;
+    en += ` / Extra phrase: ${np2.en}.`;
+    answers.push(np2.ending); parts.push(np2);
+  }
+
+  if(length==="medium" && !useMulti){
+    de += " Das merke ich besonders im Alltag.";
+    en += " I notice that especially in everyday life.";
+  }
+  if(length==="long" && !useMulti){
+    de += " Obwohl die Situation nicht perfekt ist, versuche ich ruhig und flexibel zu bleiben.";
+    en += " Although the situation is not perfect, I try to stay calm and flexible.";
+  }
+
+  current={de,en,answers,parts,tense};
+  document.getElementById("question").innerHTML=de;
+  document.getElementById("translation").textContent=en;
+  document.getElementById("meta").textContent=`${caseNames[np1.case]} • ${articleNames[np1.artType]} • ${genderNames[np1.g]} • ${tense}`;
+  document.getElementById("feedback").className="feedback";
+  document.getElementById("feedback").innerHTML="Type the missing ending. For multiple blanks, separate endings with commas.";
+  document.getElementById("answer").value="";
+  document.getElementById("answer").focus();
+  pulse();
+  beep(420,.035,"sine");
+}
+
+function norm(x){
+  return x.toLowerCase().trim().replaceAll("–","-").replaceAll("—","-").split(",").map(s=>s.trim().replace(/^-+/,"")).filter(Boolean);
+}
+function check(){
+  if(!current) return generate();
+  const got=norm(document.getElementById("answer").value);
+  const exp=current.answers.map(x=>x.toLowerCase());
+  const ok = got.length===exp.length && got.every((x,i)=>x===exp[i]);
+  total++;
+  if(ok){score++; streak++; beep(740,.06,"triangle");}
+  else{streak=0; beep(180,.08,"sawtooth");}
+  document.getElementById("score").textContent=score;
+  document.getElementById("total").textContent=total;
+  document.getElementById("streak").textContent=streak;
+
+  let html = ok ? `<div class="correct">Correct.</div>` : `<div class="wrong">Not quite. Correct answer: ${exp.map(e=>"-"+e).join(", ")}</div>`;
+  html += "<hr style='border-color:rgba(255,255,255,.12); border-width:1px 0 0; margin:12px 0'>";
+  current.parts.forEach((p,i)=>{
+    html += `<div><b>Blank ${i+1}:</b> <span class="ending">-${p.ending}</span> because this is <b>${caseNames[p.case]}</b>, <b>${articleNames[p.artType]}</b>, and <b>${genderNames[p.g]}</b>.</div>`;
+    html += `<div class="small">Phrase: ${p.full} = ${p.en}. Adjective: <b>${p.adj}</b> = ${p.adjEn}; noun: <b>${p.noun}</b> = ${p.nounEn}.</div>`;
+  });
+  html += `<div class="small" style="margin-top:10px">Rule move: identify article type → case → gender/number → choose the ending from that row.</div>`;
+  const fb=document.getElementById("feedback");
+  fb.className="feedback " + (ok?"good":"bad");
+  fb.innerHTML=html;
+  pulse();
+}
+function pulse(){document.getElementById("quizPanel").classList.remove("spark"); void document.getElementById("quizPanel").offsetWidth; document.getElementById("quizPanel").classList.add("spark")}
+let audioCtx=null;
+function beep(freq=440,dur=.05,type="sine"){
+  if(!sound) return;
+  try{
+    audioCtx=audioCtx||new(window.AudioContext||window.webkitAudioContext)();
+    const o=audioCtx.createOscillator(), g=audioCtx.createGain();
+    o.type=type; o.frequency.value=freq; g.gain.value=.035;
+    o.connect(g); g.connect(audioCtx.destination); o.start();
+    g.gain.exponentialRampToValueAtTime(.0001,audioCtx.currentTime+dur);
+    o.stop(audioCtx.currentTime+dur);
+  }catch(e){}
+}
+document.getElementById("newBtn").onclick=generate;
+document.getElementById("checkBtn").onclick=check;
+document.getElementById("answer").addEventListener("keydown",e=>{if(e.key==="Enter")check()});
+document.getElementById("soundOn").onclick=()=>{sound=true; soundOn.classList.add("active"); soundOff.classList.remove("active"); beep()};
+document.getElementById("soundOff").onclick=()=>{sound=false; soundOff.classList.add("active"); soundOn.classList.remove("active")};
+generate();
+</script>
+
+<script>
+(function(){
+  const orb=document.createElement('div');
+  orb.className='cursor-orb';
+  document.body.appendChild(orb);
+  document.addEventListener('mousemove',e=>{orb.style.left=e.clientX+'px';orb.style.top=e.clientY+'px';});
+  document.addEventListener('mousedown',e=>{
+    orb.style.width='42px'; orb.style.height='42px';
+    const target=e.target.closest('button,a,.card,.panel,.practice,.question,.prompt');
+    if(target){target.classList.remove('click-pop'); void target.offsetWidth; target.classList.add('click-pop');}
+    for(let i=0;i<12;i++){
+      const s=document.createElement('div'); s.className='cursor-spark';
+      s.style.left=e.clientX+'px'; s.style.top=e.clientY+'px';
+      const angle=Math.random()*Math.PI*2, dist=28+Math.random()*54;
+      s.style.setProperty('--dx',Math.cos(angle)*dist+'px');
+      s.style.setProperty('--dy',Math.sin(angle)*dist+'px');
+      document.body.appendChild(s); setTimeout(()=>s.remove(),680);
+    }
+  });
+  document.addEventListener('mouseup',()=>{orb.style.width='26px';orb.style.height='26px';});
+})();
+</script>
+
+</body>
+</html>

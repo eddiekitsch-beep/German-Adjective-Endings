@@ -1,0 +1,1021 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>German Preposition Case Trainer</title>
+  <style>
+    :root{
+    --bg1:#070b1d; --bg2:#151033; --bg3:#24105a; --card:#121936d9; --card2:#1c2550d9;
+    --text:#f7f8ff; --muted:#b9c3ea; --accent:#a78bfa; --accent2:#38d9ff;
+    --good:#72f1b8; --bad:#ff6f91; --warn:#ffd166; --border:#ffffff24;
+    --glow1:rgba(167,139,250,.35); --glow2:rgba(56,217,255,.28); --shadow:rgba(0,0,0,.45);
+  }
+    *{box-sizing:border-box}
+    body{
+      margin:0; min-height:100vh; color:var(--text);
+      font-family:Inter, ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial;
+      background:
+      radial-gradient(circle at 18% 12%, rgba(167,139,250,.35) 0 9%, transparent 28%),
+      radial-gradient(circle at 84% 18%, rgba(56,217,255,.28) 0 8%, transparent 27%),
+      radial-gradient(circle at 52% 88%, rgba(124,58,237,.32) 0 13%, transparent 34%),
+      linear-gradient(135deg,var(--bg1),var(--bg2) 52%,var(--bg3));
+      overflow-x:hidden;
+    }
+    .stars:before,.stars:after{
+      content:""; position:fixed; inset:0; pointer-events:none; opacity:.35;
+      background-image:
+        radial-gradient(#fff 1px, transparent 1px),
+        radial-gradient(#fff 1px, transparent 1px);
+      background-size:70px 70px, 110px 110px;
+      background-position:0 0, 30px 50px;
+      animation: drift 24s linear infinite;
+    }
+    .stars:after{opacity:.16; animation-duration:45s; filter:blur(.5px)}
+    @keyframes drift{to{transform:translateY(80px)}}
+    .wrap{max-width:1180px; margin:0 auto; padding:32px 18px 56px; position:relative}
+    header{
+      display:flex; justify-content:space-between; align-items:center; gap:16px; margin-bottom:22px;
+    }
+    h1{font-size:clamp(1.8rem,4vw,3.4rem); margin:0; letter-spacing:-.04em}
+    .subtitle{color:var(--muted); margin-top:8px; max-width:720px; line-height:1.5}
+    .score{
+      min-width:185px; background:var(--card); border:1px solid var(--border);
+      border-radius:20px; padding:14px 16px; box-shadow:0 20px 60px var(--shadow);
+      text-align:right;
+    }
+    .score strong{font-size:1.5rem; color:var(--accent2)}
+    .grid{display:grid; grid-template-columns:350px 1fr; gap:18px}
+    .panel,.practice{
+      background:var(--card); border:1px solid var(--border); border-radius:24px;
+      box-shadow:0 18px 80px var(--shadow); backdrop-filter:blur(10px);
+    }
+    .panel{padding:18px}
+    .practice{padding:24px; min-height:570px}
+    h2{margin:0 0 12px; font-size:1.05rem; color:#fff}
+    .section{margin-bottom:20px; padding-bottom:16px; border-bottom:1px solid var(--border)}
+    .section:last-child{border-bottom:0; margin-bottom:0; padding-bottom:0}
+    label{display:block; color:var(--muted); font-size:.92rem; margin:10px 0 7px}
+    select,button,input{
+      width:100%; border:1px solid var(--border); border-radius:14px; padding:12px 13px;
+      background:#0e1430; color:var(--text); outline:none; font-size:1rem;
+    }
+    select:focus,input:focus{border-color:var(--accent2); box-shadow:0 0 0 3px #4ee1ff22}
+    .chips{display:flex; flex-wrap:wrap; gap:8px}
+    .chip{
+      width:auto; padding:9px 11px; border-radius:999px; cursor:pointer; user-select:none;
+      background:#111838; color:var(--muted); border:1px solid var(--border); transition:.15s;
+    }
+    .chip.active{background:linear-gradient(135deg,var(--accent),var(--accent2)); color:#080c20; font-weight:800}
+    .toprow{display:flex; justify-content:space-between; gap:12px; align-items:center; margin-bottom:18px}
+    .modebadge{font-weight:800; color:#0b1026; background:linear-gradient(135deg,var(--accent),var(--accent2)); border-radius:999px; padding:8px 12px}
+    .prompt{
+      background:linear-gradient(135deg,#1f2857dd,#101735dd); border:1px solid var(--border);
+      border-radius:24px; padding:22px; margin:18px 0;
+      height:190px; max-height:190px; overflow:hidden;
+      display:flex; flex-direction:column; justify-content:center;
+    }
+    .english{color:var(--muted); font-size:1rem; margin-bottom:12px; display:none}
+    .translation-btn{
+      width:auto;
+      align-self:flex-start;
+      padding:8px 12px;
+      margin-bottom:10px;
+      font-size:.9rem;
+      font-weight:900;
+      cursor:pointer;
+      background:#0e1430;
+      color:var(--accent2);
+      border:1px solid var(--border);
+      border-radius:999px;
+    }
+    .translation-btn:hover{border-color:var(--accent2); box-shadow:0 0 16px #4ee1ff44}
+    .sentence{font-size:clamp(1.45rem,3vw,2.35rem); line-height:1.25; font-weight:850; max-height:118px; overflow:hidden; transition:none}
+    .sentence.fitting{visibility:hidden}
+    .blank{display:inline-block; min-width:115px; border-bottom:3px solid var(--accent2); color:var(--accent2); text-align:center}
+    .answers{display:grid; grid-template-columns:repeat(auto-fit,minmax(145px,1fr)); gap:10px; margin:18px 0}
+    .ans{
+      cursor:pointer; font-weight:800; background:#121a3c; transition:.15s; min-height:50px;
+    }
+    .ans:hover{transform:translateY(-2px); border-color:var(--accent2)}
+    .ans.correct{background:#103728; border-color:var(--good); color:var(--good)}
+    .ans.wrong{background:#3b1220; border-color:var(--bad); color:var(--bad)}
+    .row{display:grid; grid-template-columns:1fr 1fr; gap:10px}
+    .primary{
+      background:linear-gradient(135deg,var(--accent),var(--accent2)); color:#080c20; font-weight:900; cursor:pointer;
+      border:0;
+    }
+    .secondary{background:#111838; cursor:pointer}
+    .feedback{
+      min-height:96px; border-radius:18px; padding:15px; border:1px solid var(--border); background:#0e1430;
+      line-height:1.45; color:var(--muted);
+    }
+    .feedback.good{border-color:var(--good); color:#eafff5}
+    .feedback.bad{border-color:var(--bad); color:#ffeaf0}
+    .mini{font-size:.88rem; color:var(--muted); line-height:1.45}
+
+    .home-btn{
+      position:fixed;
+      top:18px;
+      left:18px;
+      z-index:10000;
+      text-decoration:none;
+      color:var(--text);
+      font-weight:900;
+      padding:10px 16px;
+      border-radius:999px;
+      background:rgba(255,255,255,.10);
+      border:1px solid var(--border);
+      backdrop-filter:blur(12px);
+      box-shadow:0 12px 32px var(--shadow);
+      transition:transform .16s ease, box-shadow .16s ease, border-color .16s ease;
+    }
+    .home-btn:hover{
+      transform:translateY(-2px);
+      border-color:var(--accent2);
+      box-shadow:0 0 22px var(--glow2);
+    }
+
+    body.sr-mode{
+      /* Uses the same global celestial palette for visual consistency. */
+    }
+    .mode-switch{
+      display:flex; gap:10px; background:var(--card); border:1px solid var(--border);
+      border-radius:18px; padding:8px; margin:18px 0; box-shadow:0 16px 50px #0005;
+    }
+    .mode-tab{
+      flex:1; cursor:pointer; font-weight:950; border-radius:13px; border:1px solid var(--border);
+      background:#0e1430; color:var(--muted); padding:12px;
+    }
+    .mode-tab.active{
+      background:linear-gradient(135deg,var(--accent),var(--accent2)); color:#10030a; border:0;
+    }
+    .sr-note{
+      display:none; margin-top:10px; color:#ffd7d7; font-size:.9rem; line-height:1.4;
+      background:#ff3b5c18; border:1px solid #ff3b5c55; border-radius:14px; padding:10px;
+    }
+    body.sr-mode .sr-note{display:block}
+    .mastery-box{
+      display:none; margin-top:12px; padding:12px; border-radius:16px;
+      background:#0e1430aa; border:1px solid var(--border);
+    }
+    body.sr-mode .mastery-box{display:block}
+    .mastery-line{display:flex; justify-content:space-between; gap:8px; font-size:.88rem; color:var(--muted); padding:4px 0}
+
+    .ans{
+      height:52px;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      text-align:center;
+      line-height:1.08;
+      white-space:normal;
+      overflow:hidden;
+      padding:8px 10px;
+    }
+    .ans.longtext{font-size:.82rem}
+    .ans.verylongtext{font-size:.7rem}
+    .sr-reset{
+      display:none;
+      margin-top:10px;
+      background:#3a0711;
+      border:1px solid #ff4b4b88;
+      color:#ffd7d7;
+      cursor:pointer;
+      font-weight:900;
+    }
+    body.sr-mode .sr-reset{display:block}
+    .mastery-line b{color:#fff}
+
+    .split-box{display:grid; gap:14px; margin:18px 0}
+    .split-row{background:#0e1430aa; border:1px solid var(--border); border-radius:18px; padding:13px}
+    .split-title{font-weight:900; color:var(--accent2); margin-bottom:9px; letter-spacing:.02em}
+    .split-options{display:grid; grid-template-columns:repeat(5,1fr); gap:9px}
+    .split-options .ans{height:52px; min-height:52px; max-height:52px}
+    @media (max-width:700px){.split-options{grid-template-columns:repeat(auto-fit,minmax(95px,1fr))}}
+    .table{width:100%; border-collapse:collapse; font-size:.9rem; overflow:hidden; border-radius:14px}
+    .table td,.table th{border-bottom:1px solid var(--border); padding:8px; text-align:left}
+    .table th{color:#fff}
+    .hide{display:none}
+    .kbd{font-family:ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; background:#ffffff14; border:1px solid #ffffff22; padding:2px 6px; border-radius:7px}
+
+    .cursor-orb{
+      position:fixed; width:28px; height:28px; border-radius:50%; pointer-events:none; z-index:9999;
+      border:1px solid #ffffff88; box-shadow:0 0 18px #9b7cff, inset 0 0 12px #4ee1ff88;
+      transform:translate(-50%,-50%); transition:width .12s,height .12s,opacity .2s; opacity:.75;
+      mix-blend-mode:screen;
+    }
+    .spark{
+      position:fixed; width:8px; height:8px; border-radius:50%; pointer-events:none; z-index:9998;
+      background:linear-gradient(135deg,var(--accent),var(--accent2)); box-shadow:0 0 16px var(--accent2);
+      animation:spark .65s ease-out forwards;
+    }
+    @keyframes spark{
+      from{transform:translate(0,0) scale(1); opacity:1}
+      to{transform:translate(var(--dx),var(--dy)) scale(0); opacity:0}
+    }
+    .magnetic{transition:transform .16s ease, box-shadow .16s ease, border-color .16s ease}
+    .magnetic:hover{box-shadow:0 0 22px #4ee1ff55; border-color:#4ee1ff99}
+    .pulseGood{animation:pulseGood .42s ease}
+    .shakeBad{animation:shakeBad .38s ease}
+    @keyframes pulseGood{50%{transform:scale(1.035); box-shadow:0 0 30px #69f0ae66}}
+    @keyframes shakeBad{20%{transform:translateX(-6px)}40%{transform:translateX(6px)}60%{transform:translateX(-4px)}80%{transform:translateX(4px)}}
+
+    @media (max-width:900px){.grid{grid-template-columns:1fr} header{display:block}.score{text-align:left;margin-top:14px}.row{grid-template-columns:1fr}.cursor-orb{display:none}}
+  
+    .panel,.practice,.card,.question,.prompt{animation:floatIn .5s ease both}
+    @keyframes floatIn{from{opacity:0; transform:translateY(10px)}to{opacity:1; transform:translateY(0)}}
+    .btn,.primary,.secondary,.chip,.ans,.mode-tab,.translation-btn,.home-btn{transition:transform .16s ease, box-shadow .16s ease, border-color .16s ease, filter .16s ease}
+    .btn:hover,.primary:hover,.secondary:hover,.chip:hover,.ans:hover,.mode-tab:hover,.translation-btn:hover{transform:translateY(-2px); box-shadow:0 0 24px var(--glow2); border-color:var(--accent2)}
+
+
+
+/* === Coherent minimalist theme override === */
+:root{
+  --bg1:#f7f7f5; --bg2:#efefec; --bg3:#d9d9d4;
+  --card:rgba(255,255,255,.78); --card2:rgba(245,245,242,.88);
+  --text:#101010; --muted:#5f5f5f; --accent:#111111; --accent2:#6f6f6f;
+  --good:#167a3f; --bad:#b4233a; --warn:#a56a00; --border:rgba(0,0,0,.14);
+  --glow1:rgba(0,0,0,.10); --glow2:rgba(0,0,0,.16); --shadow:rgba(0,0,0,.12);
+}
+body{
+  color:var(--text) !important;
+  background:
+    radial-gradient(circle at 16% 12%, rgba(0,0,0,.055) 0 9%, transparent 27%),
+    radial-gradient(circle at 88% 18%, rgba(0,0,0,.04) 0 8%, transparent 25%),
+    linear-gradient(135deg,var(--bg1),var(--bg2) 55%,var(--bg3)) !important;
+}
+body:before,body:after,.stars:before,.stars:after{
+  background-image:radial-gradient(rgba(0,0,0,.28) 1px, transparent 1px),radial-gradient(rgba(0,0,0,.18) 1px, transparent 1px) !important;
+  opacity:.16 !important;
+}
+body:after,.stars:after{opacity:.08 !important}
+h1,h2,.card h2,.table th{color:var(--text) !important}
+.panel,.practice,.card,.question,.prompt,.score,.mode-switch{
+  background:var(--card) !important;
+  border-color:var(--border) !important;
+  box-shadow:0 18px 60px var(--shadow) !important;
+}
+.question,.prompt,.split-row,.feedback,.mastery-box{
+  background:var(--card2) !important;
+}
+select,input,button,.chip,.badge,.secondary,.mode-tab,.translation-btn,.ans{
+  background:#ffffff !important;
+  color:var(--text) !important;
+  border-color:var(--border) !important;
+}
+select option{background:#ffffff !important;color:#111 !important}
+.btn,.primary,.chip.active,.mode-tab.active,.modebadge{
+  background:#111111 !important;
+  color:#ffffff !important;
+  border-color:#111111 !important;
+  box-shadow:0 10px 28px rgba(0,0,0,.14) !important;
+}
+.btn.secondary,.secondary{background:#ffffff !important;color:#111111 !important}
+.blank,.ending,.score strong,.split-title,.translation-btn{color:#111111 !important;border-color:#111111 !important}
+.feedback.good,.ans.correct{border-color:var(--good) !important;color:var(--good) !important;background:#f2fff7 !important}
+.feedback.bad,.ans.wrong{border-color:var(--bad) !important;color:var(--bad) !important;background:#fff4f6 !important}
+.home-btn{background:rgba(255,255,255,.82) !important;color:#111 !important;border-color:var(--border) !important;box-shadow:0 12px 30px var(--shadow) !important}
+.home-btn:hover,.btn:hover,.primary:hover,.secondary:hover,.chip:hover,.ans:hover,.mode-tab:hover,.translation-btn:hover{box-shadow:0 0 0 3px rgba(0,0,0,.08),0 16px 34px rgba(0,0,0,.12) !important;border-color:#111 !important}
+.cursor-orb{
+  border-color:rgba(0,0,0,.55) !important;
+  box-shadow:0 0 0 6px rgba(0,0,0,.06), inset 0 0 0 1px rgba(0,0,0,.18) !important;
+  mix-blend-mode:multiply !important;
+}
+.cursor-spark,.sparkle-click,.spark{
+  background:#111111 !important;
+  box-shadow:0 0 16px rgba(0,0,0,.35) !important;
+}
+.click-pop{animation:clickPop .24s ease both !important}
+@keyframes clickPop{50%{transform:scale(.965)}100%{transform:scale(1)}}
+
+
+/* Spaced Rep gets its own focused blue palette */
+body.sr-mode{
+  --bg1:#eaf4ff; --bg2:#d7eaff; --bg3:#b8d8ff;
+  --card:rgba(246,251,255,.86); --card2:rgba(226,241,255,.9);
+  --text:#071827; --muted:#49657f; --accent:#0b5ed7; --accent2:#2f9bff;
+  --good:#087f5b; --bad:#c92a2a; --warn:#a86600; --border:rgba(11,94,215,.22);
+  --glow1:rgba(47,155,255,.18); --glow2:rgba(11,94,215,.24); --shadow:rgba(19,66,122,.15);
+  background:
+    radial-gradient(circle at 18% 12%, rgba(47,155,255,.22) 0 9%, transparent 28%),
+    radial-gradient(circle at 84% 18%, rgba(11,94,215,.14) 0 8%, transparent 27%),
+    linear-gradient(135deg,var(--bg1),var(--bg2) 52%,var(--bg3)) !important;
+}
+body.sr-mode .btn,body.sr-mode .primary,body.sr-mode .chip.active,body.sr-mode .mode-tab.active,body.sr-mode .modebadge{
+  background:linear-gradient(135deg,#0b5ed7,#2f9bff) !important;color:white !important;border-color:transparent !important;
+}
+body.sr-mode .blank,body.sr-mode .ending,body.sr-mode .score strong,body.sr-mode .split-title,body.sr-mode .translation-btn{color:#0b5ed7 !important;border-color:#0b5ed7 !important}
+body.sr-mode .sr-note{color:#073763 !important;background:rgba(47,155,255,.12) !important;border-color:rgba(11,94,215,.25) !important}
+body.sr-mode .sr-reset{background:#ffffff !important;color:#0b5ed7 !important;border-color:rgba(11,94,215,.35) !important}
+body.sr-mode .cursor-orb{border-color:rgba(11,94,215,.65) !important;box-shadow:0 0 0 7px rgba(47,155,255,.12), inset 0 0 14px rgba(47,155,255,.30) !important;mix-blend-mode:normal !important}
+body.sr-mode .cursor-spark,body.sr-mode .sparkle-click,body.sr-mode .spark{background:#2f9bff !important;box-shadow:0 0 18px rgba(47,155,255,.65) !important}
+
+
+/* Fun cursor + click effects */
+.cursor-orb{position:fixed;width:26px;height:26px;border-radius:50%;pointer-events:none;z-index:9999;transform:translate(-50%,-50%);transition:width .12s ease,height .12s ease,opacity .2s ease;border:1px solid rgba(0,0,0,.55);box-shadow:0 0 0 6px rgba(0,0,0,.06),inset 0 0 0 1px rgba(0,0,0,.16);opacity:.85;mix-blend-mode:multiply}
+.cursor-spark{position:fixed;width:7px;height:7px;border-radius:50%;pointer-events:none;z-index:9998;background:#111;box-shadow:0 0 16px rgba(0,0,0,.35);animation:cursorSpark .62s ease-out forwards}
+@keyframes cursorSpark{from{transform:translate(0,0) scale(1);opacity:1}to{transform:translate(var(--dx),var(--dy)) scale(0);opacity:0}}
+.click-pop{animation:clickPop .24s ease both}@keyframes clickPop{50%{transform:scale(.965)}100%{transform:scale(1)}}
+@media(max-width:900px){.cursor-orb{display:none}}
+
+</style>
+</head>
+<body>
+<a href="index.html" class="home-btn">🏠 Home</a>
+<div class="stars"></div>
+<div class="cursor-orb" id="cursorOrb"></div>
+<div class="wrap">
+  <header>
+    <div>
+      <h1>German Preposition Case Trainer</h1>
+      <div class="subtitle">Practice accusative, dative, two-way, and genitive prepositions with generated sentences, instant correction, and explanations.</div>
+    </div>
+    <div class="score">
+      <div>Score</div>
+      <strong id="score">0 / 0</strong>
+      <div class="mini" id="streak">Streak: 0</div>
+    </div>
+  </header>
+
+  <div class="mode-switch">
+    <button class="mode-tab active" id="normalModeBtn">Normal Mode</button>
+    <button class="mode-tab" id="srModeBtn">Spaced Rep Mode</button>
+  </div>
+
+  <div class="grid">
+    <aside class="panel">
+      <div class="section">
+        <h2>Practice type</h2>
+        <label>Question mode</label>
+        <select id="mode">
+          <option value="prep">Choose the preposition</option>
+          <option value="article">Choose the article ending/case</option>
+          <option value="prep_article">Choose preposition + article</option>
+          <option value="case">Identify the case</option>
+          <option value="mixed">Mixed mode</option>
+        </select>
+
+        <label>Difficulty</label>
+        <select id="difficulty">
+          <option value="easy">Easy: short sentences</option>
+          <option value="medium" selected>Medium: everyday sentences</option>
+          <option value="hard">Hard: longer B1/B2 style</option>
+        </select>
+        <div class="sr-note">
+          Spaced Rep Mode tracks response time + mistakes. Fast correct answers get buried; slow/wrong patterns come back with different sentences and nouns.
+        </div>
+        <div class="mastery-box">
+          <h2>Weakness Focus</h2>
+          <div id="masteryList" class="mini">Answer a few questions to build your profile.</div>
+          <button class="sr-reset" id="resetSR">Reset spaced-rep memory</button>
+        </div>
+      </div>
+
+      <div class="section">
+        <h2>Preposition groups</h2>
+        <div class="chips" id="groups">
+          <button class="chip active" data-group="accusative">Akkusativ</button>
+          <button class="chip active" data-group="dative">Dativ</button>
+          <button class="chip active" data-group="twoway">Two-way</button>
+          <button class="chip active" data-group="genitive">Genitiv</button>
+        </div>
+      </div>
+
+      <div class="section">
+        <h2>Two-way rule</h2>
+        <div class="mini">
+          <b>Wohin? Movement/change of position → Akkusativ</b><br>
+          Ich gehe in <b>den</b> Park.<br><br>
+          <b>Wo? Fixed location → Dativ</b><br>
+          Ich bin in <b>dem</b> Park.
+        </div>
+      </div>
+
+      <div class="section">
+        <h2>Core preposition map</h2>
+        <table class="table">
+          <tr><th>Case</th><th>Prepositions</th></tr>
+          <tr><td>Akk</td><td>durch, für, gegen, ohne, um, bis</td></tr>
+          <tr><td>Dat</td><td>aus, bei, mit, nach, seit, von, zu</td></tr>
+          <tr><td>2-way</td><td>an, auf, hinter, in, neben, über, unter, vor, zwischen</td></tr>
+          <tr><td>Gen</td><td>während, wegen, trotz, statt, außerhalb, innerhalb</td></tr>
+        </table>
+      </div>
+    </aside>
+
+    <main class="practice">
+      <div class="toprow">
+        <div class="modebadge" id="badge">Choose the preposition</div>
+        <button class="secondary" style="width:auto" id="toggleHint">Show hint</button>
+      </div>
+
+      <div class="prompt">
+        <button class="translation-btn" id="showTranslation">Show translation</button>
+        <div class="english" id="english"></div>
+        <div class="sentence" id="sentence"></div>
+      </div>
+
+      <div class="answers" id="answers"></div>
+
+      <div class="row">
+        <button class="primary" id="next">Next question</button>
+        <button class="secondary" id="reset">Reset score</button>
+      </div>
+
+      <br>
+      <div class="feedback" id="feedback">Pick an answer. Use the hint button when you want the case logic.</div>
+    </main>
+  </div>
+</div>
+
+<script>
+const PREPS = {
+  accusative: ["durch","für","gegen","ohne","um","bis"],
+  dative: ["aus","außer","bei","mit","nach","seit","von","zu","gegenüber"],
+  twoway: ["an","auf","hinter","in","neben","über","unter","vor","zwischen"],
+  genitive: ["während","wegen","trotz","statt","außerhalb","innerhalb","oberhalb","unterhalb","aufgrund"]
+};
+
+const nouns = {
+  masc: [
+    ["Freund","friend"],["Park","park"],["Bahnhof","train station"],["Tisch","table"],["Unterricht","class"],
+    ["Supermarkt","supermarket"],["Arzt","doctor"],["Termin","appointment"],["Zug","train"],["Bus","bus"],
+    ["Markt","market"],["Wald","forest"],["Fluss","river"],["Berg","mountain"],["See","lake"],["Platz","square"],
+    ["Koffer","suitcase"],["Rucksack","backpack"],["Schlüssel","key"],["Ausweis","ID"],["Vertrag","contract"],
+    ["Verein","club"],["Nachbar","neighbour"],["Lehrer","teacher"],["Kunde","customer"],["Fehler","mistake"],
+    ["Grund","reason"],["Plan","plan"],["Bericht","report"],["Vortrag","presentation"],["Antrag","application"]
+  ],
+  fem: [
+    ["Schule","school"],["Stadt","city"],["Tasche","bag"],["Wohnung","apartment"],["Universität","university"],
+    ["Haltestelle","stop"],["Bibliothek","library"],["Familie","family"],["Straße","street"],["Küche","kitchen"],
+    ["Prüfung","exam"],["Aufgabe","task"],["Rechnung","bill"],["Nachricht","message"],["E-Mail","email"],
+    ["Fahrkarte","ticket"],["Grenze","border"],["Reise","trip"],["Regel","rule"],["Erfahrung","experience"],
+    ["Entscheidung","decision"],["Möglichkeit","possibility"],["Meinung","opinion"],["Frage","question"],["Antwort","answer"],
+    ["Veranstaltung","event"],["Versicherung","insurance"],["Anmeldung","registration"],["Bewerbung","application"],["Miete","rent"]
+  ],
+  neut: [
+    ["Haus","house"],["Zimmer","room"],["Café","café"],["Problem","problem"],["Fahrrad","bike"],["Hotel","hotel"],
+    ["Training","training"],["Gespräch","conversation"],["Restaurant","restaurant"],["Museum","museum"],["Kino","cinema"],
+    ["Büro","office"],["Fenster","window"],["Handy","phone"],["Ticket","ticket"],["Geld","money"],["Essen","food"],
+    ["Wetter","weather"],["Land","country"],["Dorf","village"],["Beispiel","example"],["Ziel","goal"],["Projekt","project"],
+    ["Thema","topic"],["Dokument","document"],["Paket","package"],["Gesetz","law"],["Angebot","offer"],["Ergebnis","result"]
+  ],
+  pl: [
+    ["Freunde","friends"],["Prüfungen","exams"],["Hausaufgaben","homework tasks"],["Leute","people"],["Regeln","rules"],
+    ["Nachrichten","messages"],["Sachen","things"],["Bücher","books"],["Fragen","questions"],["Antworten","answers"],
+    ["Tickets","tickets"],["Koffer","suitcases"],["Rechnungen","bills"],["Termine","appointments"],["Dokumente","documents"],
+    ["Nachbarn","neighbours"],["Kunden","customers"],["Lehrer","teachers"],["Probleme","problems"],["Erfahrungen","experiences"],
+    ["Möglichkeiten","possibilities"],["Entscheidungen","decisions"],["Veranstaltungen","events"],["Vorschriften","regulations"]
+  ]
+};
+
+const articles = {
+  nominative:{masc:"der",fem:"die",neut:"das",pl:"die"},
+  accusative:{masc:"den",fem:"die",neut:"das",pl:"die"},
+  dative:{masc:"dem",fem:"der",neut:"dem",pl:"den"},
+  genitive:{masc:"des",fem:"der",neut:"des",pl:"der"}
+};
+
+const prepMeanings = {
+  durch:"through", für:"for", gegen:"against", ohne:"without", um:"around/at", bis:"until",
+  aus:"out of/from", außer:"except", bei:"at/with", mit:"with", nach:"to/after", seit:"since/for", von:"from/by", zu:"to", gegenüber:"opposite",
+  an:"at/on", auf:"on", hinter:"behind", in:"in/into", neben:"next to", über:"over/about", unter:"under", vor:"in front of/before", zwischen:"between",
+  während:"during", wegen:"because of", trotz:"despite", statt:"instead of", außerhalb:"outside of", innerhalb:"inside/within", oberhalb:"above", unterhalb:"below", aufgrund:"due to"
+};
+
+const verbs = {
+  location:["bin","sitze","warte","lerne","trainiere","stehe","wohne","arbeite","bleibe","schlafe","esse","telefoniere"],
+  movement:["gehe","fahre","laufe","stelle mich","lege das Buch","bringe die Tasche","setze mich","komme","reise","renne","ziehe","fliege"],
+  general:["spreche","frage","bezahle","suche","denke","plane","schreibe","trainiere","diskutiere","streite","lerne","warte","entscheide mich"]
+};
+
+const subjects = [
+  ["Ich","ich"],["Wir","wir"],["Mein Freund","er"],["Meine Freundin","sie"],["Der Student","er"],
+  ["Die Lehrerin","sie"],["Der Tourist","er"],["Meine Gastfamilie","sie"],["Der Nachbar","er"],["Die Gruppe","sie"]
+];
+
+const timeBits = ["heute","morgen","nach dem Unterricht","am Wochenende","seit einer Stunde","in der Pause","gerade","später","jeden Tag","diese Woche"];
+const reasonBits = [
+  "weil ich Deutsch üben möchte",
+  "weil ich dort jemanden treffen muss",
+  "obwohl ich noch müde bin",
+  "damit ich mich besser vorbereiten kann",
+  "weil diese Situation im Alltag wichtig ist",
+  "obwohl ich den Weg noch nicht gut kenne",
+  "weil ich eine Frage stellen muss",
+  "damit alles rechtzeitig fertig wird"
+];
+
+const endings = {
+  masc:{nom:"", acc:"", dat:"", gen:"s"},
+  fem:{nom:"", acc:"", dat:"", gen:""},
+  neut:{nom:"", acc:"", dat:"", gen:"s"},
+  pl:{nom:"", acc:"", dat:"n", gen:""}
+};
+
+
+let appMode = "normal";
+let questionStartTime = Date.now();
+let srMemory = JSON.parse(localStorage.getItem("prepTrainerSRMemory_v1") || "{}");
+let recentKeys = [];
+let current=null, correct=0, total=0, streak=0;
+
+
+function rand(arr){ return arr[Math.floor(Math.random()*arr.length)] }
+function activeGroups(){ return [...document.querySelectorAll('.chip.active')].map(x=>x.dataset.group) }
+function caseForPrep(group, twoWayKind){
+  if(group==="accusative") return "accusative";
+  if(group==="dative") return "dative";
+  if(group==="genitive") return "genitive";
+  return twoWayKind === "movement" ? "accusative" : "dative";
+}
+function caseGerman(c){
+  return {accusative:"Akkusativ",dative:"Dativ",genitive:"Genitiv"}[c] || c;
+}
+function choosePrep(group){ return rand(PREPS[group]); }
+function chooseNoun(){
+  const gender = rand(["masc","fem","neut","pl"]);
+  const [noun, en] = rand(nouns[gender]);
+  return {gender,noun,en};
+}
+function addEnding(nounObj, caseName){
+  let end = endings[nounObj.gender][caseName.slice(0,3)] || "";
+  if(nounObj.gender==="pl" && caseName==="dative" && !nounObj.noun.endsWith("n") && !nounObj.noun.endsWith("s")) end="n";
+  if((nounObj.gender==="masc" || nounObj.gender==="neut") && caseName==="genitive" && !nounObj.noun.endsWith("s")) end="s";
+  return nounObj.noun + end;
+}
+
+function wordCount(str){
+  return (str || "").replace(/<[^>]*>/g,"").trim().split(/\s+/).filter(Boolean).length;
+}
+function enforceSentenceLimit(german){
+  // Absolute generation cap: keep German prompt at or under 50 words.
+  const words = german.trim().split(/\s+/);
+  if(words.length <= 50) return german;
+  return words.slice(0, 50).join(" ").replace(/[,.!?;:]*$/, "") + ".";
+}
+function fitSentenceText(){
+  const sentence = document.getElementById("sentence");
+  const prompt = document.querySelector(".prompt");
+  if(!sentence || !prompt) return;
+
+  // Reset first so one-liners and normal two-liners stay full size.
+  sentence.style.fontSize = "";
+  sentence.style.lineHeight = "1.25";
+
+  const originalSize = parseFloat(getComputedStyle(sentence).fontSize);
+  const minSize = originalSize * 0.5;
+  let size = originalSize;
+
+  const lineHeight = parseFloat(getComputedStyle(sentence).lineHeight);
+  const lines = Math.round(sentence.scrollHeight / lineHeight);
+
+  // Do not shrink one-line or clean two-line prompts.
+  if(lines <= 2 && prompt.scrollHeight <= prompt.clientHeight + 8){
+    sentence.style.fontSize = "";
+    return;
+  }
+
+  let loops = 0;
+  while(
+    (sentence.scrollHeight > sentence.clientHeight + 2 || prompt.scrollHeight > prompt.clientHeight + 6)
+    && size > minSize
+    && loops < 80
+  ){
+    size -= originalSize * 0.01;
+    if(size < minSize) size = minSize;
+    sentence.style.fontSize = size + "px";
+    loops++;
+  }
+
+  // If still too long at 50% size, keep 50% and let the 50-word generator cap handle future readability.
+  if(size <= minSize){
+    sentence.style.fontSize = minSize + "px";
+  }
+}
+
+function conceptKey(group, prep, caseName, twoWayKind){
+  if(group==="twoway") return `${prep}+${caseName}+${twoWayKind}`;
+  return `${prep}+${caseName}`;
+}
+function getSR(key){
+  if(!srMemory[key]) srMemory[key] = {score:50, seen:0, wrong:0, avgTime:6, last:0};
+  return srMemory[key];
+}
+function saveSR(){ localStorage.setItem("prepTrainerSRMemory_v1", JSON.stringify(srMemory)); }
+function updateMasteryList(){
+  const box = document.getElementById("masteryList");
+  if(!box) return;
+  const entries = Object.entries(srMemory)
+    .sort((a,b)=>a[1].score-b[1].score)
+    .slice(0,6);
+  if(entries.length===0){ box.textContent = "Answer a few questions to build your profile."; return; }
+  box.innerHTML = entries.map(([k,v])=>`<div class="mastery-line"><span>${k}</span><b>${Math.round(v.score)}/100</b></div>`).join("");
+}
+function chooseSRGroupAndPrep(groups){
+  const candidates = [];
+  for(const group of groups){
+    for(const prep of PREPS[group]){
+      const kinds = group==="twoway" ? ["movement","location"] : [null];
+      for(const twoWayKind of kinds){
+        const caseName = caseForPrep(group, twoWayKind);
+        const key = conceptKey(group, prep, caseName, twoWayKind);
+        const mem = getSR(key);
+        let weight = 105 - mem.score;
+        if(recentKeys.includes(key)) weight *= 0.25;
+        if(mem.wrong > 0) weight += Math.min(20, mem.wrong * 3);
+        candidates.push({group, prep, twoWayKind, caseName, key, weight:Math.max(3, weight)});
+      }
+    }
+  }
+  const totalW = candidates.reduce((s,c)=>s+c.weight,0);
+  let r = Math.random()*totalW;
+  for(const c of candidates){ r -= c.weight; if(r <= 0) return c; }
+  return rand(candidates);
+}
+
+function phraseEnglish(prep, nounObj){
+  return `${prepMeanings[prep]} the ${nounObj.en}`;
+}
+function safeSentence(group, prep, caseName, twoWayKind, article, nounForm, nounObj, difficulty){
+  const phrase = `${prep} ${article} ${nounForm}`;
+  const phraseEn = phraseEnglish(prep, nounObj);
+  let german = "";
+  let english = "";
+
+  if(group === "twoway"){
+    if(twoWayKind === "movement"){
+      const easy = [
+        [`Ich gehe ___ ${article} ${nounForm}.`, `I am going ${phraseEn}.`],
+        [`Ich fahre ___ ${article} ${nounForm}.`, `I am driving/traveling ${phraseEn}.`],
+        [`Wir gehen ___ ${article} ${nounForm}.`, `We are going ${phraseEn}.`],
+        [`Ich lege das Buch ___ ${article} ${nounForm}.`, `I put the book ${phraseEn}.`],
+        [`Ich stelle die Tasche ___ ${article} ${nounForm}.`, `I put the bag ${phraseEn}.`]
+      ];
+      const medium = [
+        [`Heute gehe ich ___ ${article} ${nounForm}.`, `Today I am going ${phraseEn}.`],
+        [`Nach dem Unterricht fahre ich ___ ${article} ${nounForm}.`, `After class, I am traveling ${phraseEn}.`],
+        [`Am Wochenende gehen wir ___ ${article} ${nounForm}.`, `On the weekend, we are going ${phraseEn}.`],
+        [`Später lege ich meine Notizen ___ ${article} ${nounForm}.`, `Later, I put my notes ${phraseEn}.`],
+        [`In der Pause setze ich mich ___ ${article} ${nounForm}.`, `During the break, I sit down ${phraseEn}.`]
+      ];
+      const hard = [
+        [`Nach dem Unterricht gehe ich ___ ${article} ${nounForm}, weil ich dort jemanden treffen muss.`, `After class, I am going ${phraseEn} because I have to meet someone there.`],
+        [`Morgen fahre ich ___ ${article} ${nounForm}, damit ich meinen Termin pünktlich erreiche.`, `Tomorrow I am traveling ${phraseEn} so that I reach my appointment on time.`],
+        [`Später stelle ich meinen Rucksack ___ ${article} ${nounForm}, weil er im Weg steht.`, `Later, I put my backpack ${phraseEn} because it is in the way.`],
+        [`Am Wochenende gehen wir ___ ${article} ${nounForm}, obwohl das Wetter nicht perfekt ist.`, `On the weekend, we are going ${phraseEn}, even though the weather is not perfect.`]
+      ];
+      [german, english] = rand(difficulty==="hard" ? hard : difficulty==="medium" ? medium : easy);
+    } else {
+      const easy = [
+        [`Ich bin ___ ${article} ${nounForm}.`, `I am ${phraseEn}.`],
+        [`Ich warte ___ ${article} ${nounForm}.`, `I am waiting ${phraseEn}.`],
+        [`Wir sitzen ___ ${article} ${nounForm}.`, `We are sitting ${phraseEn}.`],
+        [`Das Buch liegt ___ ${article} ${nounForm}.`, `The book is lying ${phraseEn}.`],
+        [`Meine Tasche steht ___ ${article} ${nounForm}.`, `My bag is standing ${phraseEn}.`]
+      ];
+      const medium = [
+        [`Heute bin ich ___ ${article} ${nounForm}.`, `Today I am ${phraseEn}.`],
+        [`Seit einer Stunde warte ich ___ ${article} ${nounForm}.`, `I have been waiting ${phraseEn} for an hour.`],
+        [`In der Pause sitzen wir ___ ${article} ${nounForm}.`, `During the break, we are sitting ${phraseEn}.`],
+        [`Gerade liegt mein Handy ___ ${article} ${nounForm}.`, `Right now, my phone is lying ${phraseEn}.`],
+        [`Diese Woche arbeite ich oft ___ ${article} ${nounForm}.`, `This week, I often work ${phraseEn}.`]
+      ];
+      const hard = [
+        [`Seit einer Stunde warte ich ___ ${article} ${nounForm}, obwohl ich schon müde bin.`, `I have been waiting ${phraseEn} for an hour, although I am already tired.`],
+        [`Heute sitze ich ___ ${article} ${nounForm}, weil ich mich besser konzentrieren möchte.`, `Today I am sitting ${phraseEn} because I want to concentrate better.`],
+        [`Gerade liegt mein Ausweis ___ ${article} ${nounForm}, obwohl ich ihn vorhin gesucht habe.`, `Right now, my ID is lying ${phraseEn}, although I was looking for it earlier.`],
+        [`Diese Woche lerne ich oft ___ ${article} ${nounForm}, damit ich mich auf die Prüfung vorbereiten kann.`, `This week, I often study ${phraseEn} so that I can prepare for the exam.`]
+      ];
+      [german, english] = rand(difficulty==="hard" ? hard : difficulty==="medium" ? medium : easy);
+    }
+  } else {
+    const easy = [
+      [`Ich frage ___ ${article} ${nounForm}.`, `I ask about ${phraseEn}.`],
+      [`Ich spreche ___ ${article} ${nounForm}.`, `I speak ${phraseEn}.`],
+      [`Ich warte ___ ${article} ${nounForm}.`, `I wait ${phraseEn}.`],
+      [`Wir lernen ___ ${article} ${nounForm}.`, `We learn/study ${phraseEn}.`],
+      [`Ich entscheide mich ___ ${article} ${nounForm}.`, `I decide ${phraseEn}.`]
+    ];
+    const medium = [
+      [`Heute spreche ich ___ ${article} ${nounForm}.`, `Today I speak ${phraseEn}.`],
+      [`Nach dem Unterricht frage ich ___ ${article} ${nounForm}.`, `After class, I ask about ${phraseEn}.`],
+      [`Diese Woche lerne ich ___ ${article} ${nounForm}.`, `This week, I study ${phraseEn}.`],
+      [`In der Pause denke ich ___ ${article} ${nounForm}.`, `During the break, I think about ${phraseEn}.`],
+      [`Morgen entscheide ich mich ___ ${article} ${nounForm}.`, `Tomorrow I decide ${phraseEn}.`]
+    ];
+    const hard = [
+      [`Heute spreche ich ___ ${article} ${nounForm}, weil das Thema für meinen Alltag wichtig ist.`, `Today I speak ${phraseEn} because the topic is important for my everyday life.`],
+      [`Nach dem Unterricht frage ich ___ ${article} ${nounForm}, damit ich die Situation besser verstehe.`, `After class, I ask about ${phraseEn} so that I understand the situation better.`],
+      [`Diese Woche lerne ich ___ ${article} ${nounForm}, obwohl die Grammatik noch schwierig ist.`, `This week, I study ${phraseEn}, although the grammar is still difficult.`],
+      [`Morgen entscheide ich mich ___ ${article} ${nounForm}, weil ich nicht länger warten möchte.`, `Tomorrow I decide ${phraseEn} because I do not want to wait any longer.`]
+    ];
+    [german, english] = rand(difficulty==="hard" ? hard : difficulty==="medium" ? medium : easy);
+  }
+
+  return {german, english};
+}
+
+function buildQuestion(){
+  let groups = activeGroups();
+  if(groups.length===0){ document.querySelector('[data-group="accusative"]').classList.add('active'); groups=["accusative"]; }
+
+  let group, prep, twoWayKind, caseName, key;
+  if(appMode === "spaced"){
+    const picked = chooseSRGroupAndPrep(groups);
+    group = picked.group; prep = picked.prep; twoWayKind = picked.twoWayKind; caseName = picked.caseName; key = picked.key;
+  } else {
+    group = rand(groups);
+    twoWayKind = group==="twoway" ? rand(["movement","location"]) : null;
+    caseName = caseForPrep(group, twoWayKind);
+    prep = choosePrep(group);
+    key = conceptKey(group, prep, caseName, twoWayKind);
+  }
+
+  const nounObj = chooseNoun();
+  const article = articles[caseName][nounObj.gender];
+  const nounForm = addEnding(nounObj, caseName);
+  const difficulty = document.getElementById("difficulty").value;
+
+  const built = safeSentence(group, prep, caseName, twoWayKind, article, nounForm, nounObj, difficulty);
+  let german = built.german;
+  let english = built.english;
+  let hint;
+
+  if(group==="twoway"){
+    hint = twoWayKind==="movement"
+      ? `Two-way preposition. This is movement/change of position: ask “Wohin?” → Akkusativ.`
+      : `Two-way preposition. This is fixed location: ask “Wo?” → Dativ.`;
+  } else {
+    hint = `${prep} is a ${caseGerman(caseName)} preposition, so the article must match ${caseGerman(caseName)}.`;
+  }
+
+  german = enforceSentenceLimit(german);
+  const mode = document.getElementById("mode").value;
+  const realMode = mode==="mixed" ? rand(["prep","article","case","prep_article"]) : mode;
+  questionStartTime = Date.now();
+  return {group, prep, caseName, nounObj, article, nounForm, german, english, hint, mode:realMode, twoWayKind, key};
+}
+function render(){
+  updateMasteryList();
+  current = buildQuestion();
+  document.getElementById("badge").textContent = {
+    prep:"Choose the preposition",
+    article:"Choose the article",
+    case:"Identify the case",
+    prep_article:"Choose preposition + article"
+  }[current.mode];
+
+  const englishEl = document.getElementById("english");
+  const translationBtn = document.getElementById("showTranslation");
+  englishEl.textContent = current.english;
+  englishEl.style.display = "none";
+  translationBtn.textContent = "Show translation";
+  translationBtn.onclick = ()=>{
+    const hidden = englishEl.style.display === "none";
+    englishEl.style.display = hidden ? "block" : "none";
+    translationBtn.textContent = hidden ? "Hide translation" : "Show translation";
+    requestAnimationFrame(fitSentenceText);
+  };
+
+  let sentence = current.german;
+  if(current.mode==="article"){
+    sentence = sentence.replace(current.article + " " + current.nounForm, `<span class="blank">___</span> ${current.nounForm}`);
+  } else if(current.mode==="prep_article"){
+    sentence = sentence.replace("___ " + current.article, `<span class="blank">___ ___</span>`);
+  } else if(current.mode==="case"){
+    sentence = sentence.replace("___", `<b>${current.prep}</b>`);
+  } else {
+    sentence = sentence.replace("___", `<span class="blank">___</span>`);
+  }
+  const sentenceEl = document.getElementById("sentence");
+  sentenceEl.classList.add("fitting");
+  sentenceEl.innerHTML = sentence;
+
+  // Fit while hidden, then reveal only after final size is stable.
+  requestAnimationFrame(()=> {
+    fitSentenceText();
+    sentenceEl.classList.remove("fitting");
+  });
+
+  let options;
+  if(current.mode==="prep"){
+    const all = Object.values(PREPS).flat().filter(x=>x!==current.prep);
+    options = shuffle([current.prep, ...shuffle(all).slice(0,5)]);
+  } else if(current.mode==="prep_article"){
+    const allPreps = Object.values(PREPS).flat().filter(x=>x!==current.prep);
+    const allArticles = ["der","die","das","den","dem","des"];
+    const wrongCombos = [];
+    while(wrongCombos.length < 5){
+      const combo = `${rand(allPreps)} ${rand(allArticles)}`;
+      if(combo !== `${current.prep} ${current.article}` && !wrongCombos.includes(combo)) wrongCombos.push(combo);
+    }
+    options = shuffle([`${current.prep} ${current.article}`, ...wrongCombos]);
+  } else if(current.mode==="article"){
+    // Always show enough article options. The old version only used articles possible
+    // for the current noun gender, which could collapse to one choice.
+    options = shuffle(["der","die","das","den","dem","des"]);
+  } else {
+    options = shuffle(["Akkusativ","Dativ","Genitiv"]);
+  }
+  if(current.mode==="prep_article"){
+    const articleOptions = ["der","die","das","den","dem","des"];
+    const enabledPreps = activeGroups().flatMap(g=>PREPS[g]).filter(x=>x!==current.prep);
+    const fallbackPreps = Object.values(PREPS).flat().filter(x=>x!==current.prep);
+    const pool = enabledPreps.length >= 4 ? enabledPreps : fallbackPreps;
+    const prepOptions = shuffle([current.prep, ...shuffle(pool).slice(0,4)]);
+    document.getElementById("answers").innerHTML = `
+      <div class="split-box">
+        <div class="split-row">
+          <div class="split-title">1. Choose the preposition</div>
+          <div class="split-options">${prepOptions.map((o,i)=>`<button class="ans magnetic ${o.length>11?'verylongtext':o.length>7?'longtext':''}" data-kind="prep" title="Prep shortcut ${i+1}">${o}</button>`).join("")}</div>
+        </div>
+        <div class="split-row">
+          <div class="split-title">2. Choose the article</div>
+          <div class="split-options">${articleOptions.map((o,i)=>`<button class="ans magnetic ${o.length>11?'verylongtext':o.length>7?'longtext':''}" data-kind="article" title="Article shortcut ${i+6}">${o}</button>`).join("")}</div>
+        </div>
+      </div>`;
+    current.selectedArticle = null;
+    current.selectedPrep = null;
+    document.querySelectorAll(".ans").forEach(btn=>btn.onclick=()=>checkSplit(btn.textContent, btn.dataset.kind, btn));
+  } else {
+    document.getElementById("answers").innerHTML = options.map((o,i)=>`<button class="ans magnetic ${o.length>11?'verylongtext':o.length>7?'longtext':''}" title="Shortcut ${i+1}">${o}</button>`).join("");
+    document.querySelectorAll(".ans").forEach(btn=>btn.onclick=()=>check(btn.textContent, btn));
+  }
+  document.getElementById("feedback").className="feedback";
+  document.getElementById("feedback").textContent="Pick an answer. Use the hint button when you want the case logic.";
+}
+function shuffle(a){ return [...a].sort(()=>Math.random()-.5) }
+
+
+function updateSRMemory(points, elapsedSec){
+  if(appMode !== "spaced" || !current || !current.key) return;
+  const mem = getSR(current.key);
+  mem.seen++;
+  mem.avgTime = mem.avgTime * 0.7 + elapsedSec * 0.3;
+  const wrong = points < 1;
+  if(wrong) mem.wrong++;
+  const timePenalty = elapsedSec <= 3 ? -8 : elapsedSec <= 8 ? 0 : elapsedSec <= 14 ? 8 : 14;
+  const resultDelta = points === 1 ? 10 : points === 0.5 ? -7 : -18;
+  mem.score = Math.max(0, Math.min(100, mem.score + resultDelta - timePenalty));
+  mem.last = Date.now();
+  recentKeys.push(current.key);
+  if(recentKeys.length > 10) recentKeys.shift();
+  saveSR();
+  updateMasteryList();
+}
+
+function checkSplit(answer, kind, btn){
+  if(btn.dataset.done) return;
+
+  // Allow one article choice and one preposition choice.
+  document.querySelectorAll(`.ans[data-kind="${kind}"]`).forEach(b=>b.dataset.done="1");
+
+  const right = kind==="article" ? current.article : current.prep;
+  const good = answer === right;
+
+  if(kind==="article") current.selectedArticle = answer;
+  if(kind==="prep") current.selectedPrep = answer;
+
+  if(good){ btn.classList.add("correct"); }
+  else{
+    btn.classList.add("wrong");
+    document.querySelectorAll(`.ans[data-kind="${kind}"]`).forEach(b=>{if(b.textContent===right)b.classList.add("correct")});
+  }
+
+  const fb = document.getElementById("feedback");
+  const articleDone = current.selectedArticle !== null;
+  const prepDone = current.selectedPrep !== null;
+
+  if(!articleDone || !prepDone){
+    fb.className = "feedback";
+    fb.innerHTML = `${kind==="article" ? "Article" : "Preposition"} locked in. Now choose the other row for full scoring.`;
+    return;
+  }
+
+  total++;
+  const articleGood = current.selectedArticle === current.article;
+  const prepGood = current.selectedPrep === current.prep;
+  const points = (articleGood ? 0.5 : 0) + (prepGood ? 0.5 : 0);
+
+  correct += points;
+  updateSRMemory(points, (Date.now() - questionStartTime) / 1000);
+  if(points === 1){
+    streak++;
+    document.querySelector(".practice").classList.add("pulseGood");
+    setTimeout(()=>document.querySelector(".practice").classList.remove("pulseGood"),430);
+  } else {
+    streak = 0;
+    document.querySelector(".practice").classList.add("shakeBad");
+    setTimeout(()=>document.querySelector(".practice").classList.remove("shakeBad"),390);
+  }
+
+  document.getElementById("score").textContent = `${correct} / ${total}`;
+  document.getElementById("streak").textContent = `Streak: ${streak}`;
+
+  fb.className = "feedback " + (points === 1 ? "good" : "bad");
+  fb.innerHTML = points === 1
+    ? `Full mark. <b>${current.prep} ${current.article}</b> is correct. ${current.hint}`
+    : `You got <b>${points}/1</b>. Correct phrase: <b>${current.prep} ${current.article} ${current.nounForm}</b>.<br>${current.hint}`;
+}
+
+function check(answer, btn){
+  const right = current.mode==="prep" ? current.prep : current.mode==="article" ? current.article : current.mode==="prep_article" ? `${current.prep} ${current.article}` : caseGerman(current.caseName);
+  if(btn.dataset.done) return;
+  document.querySelectorAll(".ans").forEach(b=>b.dataset.done="1");
+  total++;
+  const good = answer === right;
+  updateSRMemory(good ? 1 : 0, (Date.now() - questionStartTime) / 1000);
+  if(good){ correct++; streak++; btn.classList.add("correct"); document.querySelector(".practice").classList.add("pulseGood"); setTimeout(()=>document.querySelector(".practice").classList.remove("pulseGood"),430); }
+  else{
+    streak=0; btn.classList.add("wrong"); document.querySelector(".practice").classList.add("shakeBad"); setTimeout(()=>document.querySelector(".practice").classList.remove("shakeBad"),390);
+    document.querySelectorAll(".ans").forEach(b=>{if(b.textContent===right)b.classList.add("correct")});
+  }
+  document.getElementById("score").textContent = `${correct} / ${total}`;
+  document.getElementById("streak").textContent = `Streak: ${streak}`;
+  const fb = document.getElementById("feedback");
+  fb.className = "feedback " + (good ? "good" : "bad");
+  fb.innerHTML = good
+    ? `Correct. <b>${current.prep}</b> takes <b>${caseGerman(current.caseName)}</b> here. ${current.hint}`
+    : `Not quite. Correct answer: <b>${right}</b>.<br>${current.hint}<br>Full phrase: <span class="kbd">${current.prep} ${current.article} ${current.nounForm}</span>`;
+}
+document.getElementById("next").onclick=render;
+document.getElementById("reset").onclick=()=>{correct=0; total=0; streak=0; document.getElementById("score").textContent="0 / 0"; document.getElementById("streak").textContent="Streak: 0"; render();}
+document.getElementById("toggleHint").onclick=()=>{
+  const fb=document.getElementById("feedback");
+  fb.className="feedback";
+  fb.innerHTML=`Hint: ${current.hint}<br>Meaning of <b>${current.prep}</b>: ${prepMeanings[current.prep]}.`;
+};
+document.querySelectorAll(".chip").forEach(chip=>chip.onclick=()=>{chip.classList.toggle("active"); render();});
+document.getElementById("mode").onchange=render;
+document.getElementById("difficulty").onchange=render;
+
+
+document.getElementById("normalModeBtn").onclick = ()=>{
+  appMode = "normal";
+  document.body.classList.remove("sr-mode");
+  document.getElementById("normalModeBtn").classList.add("active");
+  document.getElementById("srModeBtn").classList.remove("active");
+  render();
+};
+
+document.getElementById("resetSR").onclick = ()=>{
+  srMemory = {};
+  recentKeys = [];
+  localStorage.removeItem("prepTrainerSRMemory_v1");
+  updateMasteryList();
+  const fb = document.getElementById("feedback");
+  fb.className = "feedback";
+  fb.innerHTML = "Spaced-rep memory reset. Every preposition/case pattern starts fresh again.";
+  render();
+};
+
+document.getElementById("srModeBtn").onclick = ()=>{
+  appMode = "spaced";
+  document.body.classList.add("sr-mode");
+  document.getElementById("srModeBtn").classList.add("active");
+  document.getElementById("normalModeBtn").classList.remove("active");
+  updateMasteryList();
+  render();
+};
+
+// Cursor glow + click sparks
+const orb = document.getElementById("cursorOrb");
+document.addEventListener("mousemove", e=>{
+  if(!orb) return;
+  orb.style.left = e.clientX + "px";
+  orb.style.top = e.clientY + "px";
+});
+document.addEventListener("mousedown", e=>{
+  if(orb){ orb.style.width="42px"; orb.style.height="42px"; }
+  const target=e.target.closest('button,a,.card,.panel,.practice,.question,.prompt');
+  if(target){target.classList.remove('click-pop'); void target.offsetWidth; target.classList.add('click-pop');}
+  for(let i=0;i<12;i++){
+    const s=document.createElement("div");
+    s.className="cursor-spark";
+    s.style.left=e.clientX+"px";
+    s.style.top=e.clientY+"px";
+    const angle=Math.random()*Math.PI*2, dist=35+Math.random()*45;
+    s.style.setProperty("--dx", Math.cos(angle)*dist+"px");
+    s.style.setProperty("--dy", Math.sin(angle)*dist+"px");
+    document.body.appendChild(s);
+    setTimeout(()=>s.remove(),700);
+  }
+});
+document.addEventListener("mouseup", ()=>{
+  if(orb){ orb.style.width="28px"; orb.style.height="28px"; }
+});
+
+document.addEventListener("keydown", e=>{
+  const n = e.key === "0" ? 10 : Number(e.key);
+  if(n>=1 && n<=10){
+    const btn = document.querySelectorAll(".ans")[n-1];
+    if(btn) btn.click();
+  }
+  if(e.key==="Enter") render();
+});
+render();
+</script>
+</body>
+</html>

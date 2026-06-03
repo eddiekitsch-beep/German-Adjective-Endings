@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>German Grammar Trainer</title>
+<style>
+:root{
+  --bg1:#070b1d; --bg2:#151033; --bg3:#24105a; --card:#121936d9; --card2:#1c2550d9;
+  --text:#f7f8ff; --muted:#b9c3ea; --accent:#a78bfa; --accent2:#38d9ff;
+  --good:#72f1b8; --bad:#ff6f91; --warn:#ffd166; --border:#ffffff24;
+  --glow1:rgba(167,139,250,.35); --glow2:rgba(56,217,255,.28); --shadow:rgba(0,0,0,.45);
+}
+*{margin:0;padding:0;box-sizing:border-box}
+body{
+  min-height:100vh; display:flex; justify-content:center; align-items:center;
+  font-family:Inter,ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,Arial; color:var(--text); overflow-x:hidden;
+  background:
+    radial-gradient(circle at 18% 12%, rgba(167,139,250,.35) 0 9%, transparent 28%),
+    radial-gradient(circle at 84% 18%, rgba(56,217,255,.28) 0 8%, transparent 27%),
+    radial-gradient(circle at 52% 88%, rgba(124,58,237,.32) 0 13%, transparent 34%),
+    linear-gradient(135deg,var(--bg1),var(--bg2) 52%,var(--bg3));
+}
+body:before,body:after{
+  content:""; position:fixed; inset:0; pointer-events:none; z-index:-1;
+  background-image:radial-gradient(#fff 1px,transparent 1px),radial-gradient(#fff 1px,transparent 1px);
+  background-size:70px 70px,110px 110px; background-position:0 0,30px 50px; opacity:.28;
+  animation:drift 24s linear infinite;
+}
+body:after{opacity:.14; animation-duration:45s; filter:blur(.5px)}
+@keyframes drift{to{transform:translateY(80px)}}
+@keyframes floatIn{from{opacity:0; transform:translateY(10px)}to{opacity:1; transform:translateY(0)}}
+.container{width:min(960px,92%);text-align:center;padding:42px 0}
+h1{font-size:clamp(2.5rem,7vw,5rem);margin-bottom:15px;letter-spacing:-.06em;line-height:.95}
+.subtitle{font-size:1.12rem;line-height:1.55;color:var(--muted);margin:0 auto 38px;max-width:760px}
+.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:22px}
+.card{
+  background:var(--card);backdrop-filter:blur(12px);border:1px solid var(--border);border-radius:26px;padding:34px;
+  box-shadow:0 18px 80px var(--shadow); animation:floatIn .5s ease both;
+}
+.card:nth-child(2){animation-delay:.08s}
+.card h2{font-size:1.45rem;margin-bottom:12px}
+.card p{color:var(--muted);line-height:1.5;margin-bottom:24px}
+.btn{
+  display:inline-block;text-decoration:none;color:#070b1d;font-weight:950;padding:12px 24px;border-radius:999px;
+  background:linear-gradient(135deg,var(--accent),var(--accent2)); box-shadow:0 10px 30px var(--glow2);
+  transition:transform .16s ease,box-shadow .16s ease,filter .16s ease;
+}
+.btn:hover{transform:translateY(-2px);box-shadow:0 0 28px var(--glow2);filter:brightness(1.08)}
+.footer{margin-top:38px;color:var(--muted);font-size:.95rem}
+
+
+/* === Coherent minimalist theme override === */
+:root{
+  --bg1:#f7f7f5; --bg2:#efefec; --bg3:#d9d9d4;
+  --card:rgba(255,255,255,.78); --card2:rgba(245,245,242,.88);
+  --text:#101010; --muted:#5f5f5f; --accent:#111111; --accent2:#6f6f6f;
+  --good:#167a3f; --bad:#b4233a; --warn:#a56a00; --border:rgba(0,0,0,.14);
+  --glow1:rgba(0,0,0,.10); --glow2:rgba(0,0,0,.16); --shadow:rgba(0,0,0,.12);
+}
+body{
+  color:var(--text) !important;
+  background:
+    radial-gradient(circle at 16% 12%, rgba(0,0,0,.055) 0 9%, transparent 27%),
+    radial-gradient(circle at 88% 18%, rgba(0,0,0,.04) 0 8%, transparent 25%),
+    linear-gradient(135deg,var(--bg1),var(--bg2) 55%,var(--bg3)) !important;
+}
+body:before,body:after,.stars:before,.stars:after{
+  background-image:radial-gradient(rgba(0,0,0,.28) 1px, transparent 1px),radial-gradient(rgba(0,0,0,.18) 1px, transparent 1px) !important;
+  opacity:.16 !important;
+}
+body:after,.stars:after{opacity:.08 !important}
+h1,h2,.card h2,.table th{color:var(--text) !important}
+.panel,.practice,.card,.question,.prompt,.score,.mode-switch{
+  background:var(--card) !important;
+  border-color:var(--border) !important;
+  box-shadow:0 18px 60px var(--shadow) !important;
+}
+.question,.prompt,.split-row,.feedback,.mastery-box{
+  background:var(--card2) !important;
+}
+select,input,button,.chip,.badge,.secondary,.mode-tab,.translation-btn,.ans{
+  background:#ffffff !important;
+  color:var(--text) !important;
+  border-color:var(--border) !important;
+}
+select option{background:#ffffff !important;color:#111 !important}
+.btn,.primary,.chip.active,.mode-tab.active,.modebadge{
+  background:#111111 !important;
+  color:#ffffff !important;
+  border-color:#111111 !important;
+  box-shadow:0 10px 28px rgba(0,0,0,.14) !important;
+}
+.btn.secondary,.secondary{background:#ffffff !important;color:#111111 !important}
+.blank,.ending,.score strong,.split-title,.translation-btn{color:#111111 !important;border-color:#111111 !important}
+.feedback.good,.ans.correct{border-color:var(--good) !important;color:var(--good) !important;background:#f2fff7 !important}
+.feedback.bad,.ans.wrong{border-color:var(--bad) !important;color:var(--bad) !important;background:#fff4f6 !important}
+.home-btn{background:rgba(255,255,255,.82) !important;color:#111 !important;border-color:var(--border) !important;box-shadow:0 12px 30px var(--shadow) !important}
+.home-btn:hover,.btn:hover,.primary:hover,.secondary:hover,.chip:hover,.ans:hover,.mode-tab:hover,.translation-btn:hover{box-shadow:0 0 0 3px rgba(0,0,0,.08),0 16px 34px rgba(0,0,0,.12) !important;border-color:#111 !important}
+.cursor-orb{
+  border-color:rgba(0,0,0,.55) !important;
+  box-shadow:0 0 0 6px rgba(0,0,0,.06), inset 0 0 0 1px rgba(0,0,0,.18) !important;
+  mix-blend-mode:multiply !important;
+}
+.cursor-spark,.sparkle-click,.spark{
+  background:#111111 !important;
+  box-shadow:0 0 16px rgba(0,0,0,.35) !important;
+}
+.click-pop{animation:clickPop .24s ease both !important}
+@keyframes clickPop{50%{transform:scale(.965)}100%{transform:scale(1)}}
+
+
+/* Fun cursor + click effects */
+.cursor-orb{position:fixed;width:26px;height:26px;border-radius:50%;pointer-events:none;z-index:9999;transform:translate(-50%,-50%);transition:width .12s ease,height .12s ease,opacity .2s ease;border:1px solid rgba(0,0,0,.55);box-shadow:0 0 0 6px rgba(0,0,0,.06),inset 0 0 0 1px rgba(0,0,0,.16);opacity:.85;mix-blend-mode:multiply}
+.cursor-spark{position:fixed;width:7px;height:7px;border-radius:50%;pointer-events:none;z-index:9998;background:#111;box-shadow:0 0 16px rgba(0,0,0,.35);animation:cursorSpark .62s ease-out forwards}
+@keyframes cursorSpark{from{transform:translate(0,0) scale(1);opacity:1}to{transform:translate(var(--dx),var(--dy)) scale(0);opacity:0}}
+.click-pop{animation:clickPop .24s ease both}@keyframes clickPop{50%{transform:scale(.965)}100%{transform:scale(1)}}
+@media(max-width:900px){.cursor-orb{display:none}}
+
+</style>
+</head>
+<body>
+<div class="container">
+<h1>German Grammar Trainer</h1>
+<p class="subtitle">Interactive German learning tools with one coherent celestial theme, spaced repetition, grammar drills, and real-world sentence practice.</p>
+<div class="cards">
+<div class="card">
+<h2>📍 Preposition Trainer</h2>
+<p>Practice Akkusativ, Dativ, Genitiv, Wechselpräpositionen, Wo/Wohin, and spaced repetition.</p>
+<a class="btn" href="preposition-trainer.html">Open Trainer</a>
+</div>
+<div class="card">
+<h2>📝 Adjective Ending Trainer</h2>
+<p>Drill adjective endings in all four cases with dynamically generated examples.</p>
+<a class="btn" href="adjective-trainer.html">Open Trainer</a>
+</div>
+</div>
+<div class="footer">Built by Eddie • German Learning Project</div>
+</div>
+
+<script>
+(function(){
+  const orb=document.createElement('div');
+  orb.className='cursor-orb';
+  document.body.appendChild(orb);
+  document.addEventListener('mousemove',e=>{orb.style.left=e.clientX+'px';orb.style.top=e.clientY+'px';});
+  document.addEventListener('mousedown',e=>{
+    orb.style.width='42px'; orb.style.height='42px';
+    const target=e.target.closest('button,a,.card,.panel,.practice,.question,.prompt');
+    if(target){target.classList.remove('click-pop'); void target.offsetWidth; target.classList.add('click-pop');}
+    for(let i=0;i<12;i++){
+      const s=document.createElement('div'); s.className='cursor-spark';
+      s.style.left=e.clientX+'px'; s.style.top=e.clientY+'px';
+      const angle=Math.random()*Math.PI*2, dist=28+Math.random()*54;
+      s.style.setProperty('--dx',Math.cos(angle)*dist+'px');
+      s.style.setProperty('--dy',Math.sin(angle)*dist+'px');
+      document.body.appendChild(s); setTimeout(()=>s.remove(),680);
+    }
+  });
+  document.addEventListener('mouseup',()=>{orb.style.width='26px';orb.style.height='26px';});
+})();
+</script>
+
+</body>
+</html>
